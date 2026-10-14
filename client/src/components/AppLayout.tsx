@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 
 type AppLayoutProps = {
-  /** Rendered at the right of the header; filled with the user's name and log-out in Phase 6. */
+  /** Rendered at the right of the header; filled with the user's name and log-out in Phase 7. */
   userMenu?: ReactNode;
 };
 

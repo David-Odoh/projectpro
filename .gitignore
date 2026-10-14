@@ -10,7 +10,7 @@ dist/
 !.env.example
 
 # Generated Prisma client
-generated/prisma/
+**/generated/prisma/
 
 # Logs and OS files
 *.log

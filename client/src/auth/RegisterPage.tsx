@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Placeholder until the register form is built in Phase 6.
+// Placeholder until the register form is built in Phase 7.
 export default function RegisterPage() {
   return (
     <Card className="mx-auto max-w-sm">
