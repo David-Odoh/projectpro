@@ -44,14 +44,14 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 
 ## Phase 2: Client foundation
 
-- [ ] **2.1** Scaffold `client/` with Vite's React + TypeScript template; pin TypeScript 6.0.
-- [ ] **2.2** Install Tailwind CSS and `@tailwindcss/vite`; add the plugin to `vite.config.ts` and `@import "tailwindcss"` to `src/index.css`.
-- [ ] **2.3** Add the `@` alias to `client/src` in `vite.config.ts` and the tsconfig files.
-- [ ] **2.4** Run `shadcn init`, then add button, input, textarea, label, field, card and dialog.
-- [ ] **2.5** Add the `/api` proxy to the server in `vite.config.ts`.
-- [ ] **2.6** Install React Router and TanStack Query; add `src/main.tsx` providers and `src/App.tsx` with placeholder routes for `/login`, `/register` and `/projects`.
-- [ ] **2.7** Add `src/components/AppLayout.tsx`: header with the app name and a slot for the user menu.
-- [ ] **2.8** Configure Vitest (jsdom) with React Testing Library, plus ESLint and Prettier; add one smoke test that renders the app.
+- [x] **2.1** Scaffold `client/` with Vite's React + TypeScript template; pin TypeScript 6.0.
+- [x] **2.2** Install Tailwind CSS and `@tailwindcss/vite`; add the plugin to `vite.config.ts` and `@import "tailwindcss"` to `src/index.css`.
+- [x] **2.3** Add the `@` alias to `client/src` in `vite.config.ts` and the tsconfig files.
+- [x] **2.4** Run `shadcn init`, then add button, input, textarea, label, field, card and dialog.
+- [x] **2.5** Add the `/api` proxy to the server in `vite.config.ts`.
+- [x] **2.6** Install React Router and TanStack Query; add `src/main.tsx` providers and `src/App.tsx` with placeholder routes for `/login`, `/register` and `/projects`.
+- [x] **2.7** Add `src/components/AppLayout.tsx`: header with the app name and a slot for the user menu.
+- [x] **2.8** Configure Vitest (jsdom) with React Testing Library, plus ESLint and Prettier; add one smoke test that renders the app.
 
 **Check:** `npm run dev` shows a styled shell; navigating between the three routes works; `npm test`, `npm run lint` and `npm run build` pass.
 
