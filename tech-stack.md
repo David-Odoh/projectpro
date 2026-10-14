@@ -59,8 +59,7 @@ Components for the first milestone: button, input, textarea, label, field, card 
 
 | Tool | Version | Purpose |
 |---|---|---|
-| PostgreSQL | 18 (official Docker image) | Data store for users, sessions and projects |
-| Docker Compose | bundled with Docker | Runs Postgres locally |
+| PostgreSQL | 18 (Homebrew `postgresql@18`) | Data store for users, sessions and projects; runs natively, no Docker |
 
 ## Conventions
 

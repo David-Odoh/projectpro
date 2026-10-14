@@ -16,8 +16,27 @@ A small project tracker: sign in, create a project, list projects.
   ```
 
 - **Git**
-- **Docker** with Docker Compose, to run PostgreSQL 18 locally. Not needed until the database is added.
+- **PostgreSQL 18**, installed with Homebrew (`brew install postgresql@18`). Not needed until the database is added.
 
 ## Setup
 
 To be completed as the milestone is built.
+
+### Database
+
+Postgres 18 runs natively on the default port, 5432. The `postgresql@18` formula is keg-only, so put its tools on `PATH` first:
+
+```sh
+echo 'export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Then, once:
+
+```sh
+brew install postgresql@18
+brew services start postgresql@18
+psql -d postgres -f server/db/setup.sql   # creates the projectpro role and databases
+```
+
+`setup.sql` is safe to run again. Copy `server/.env.example` to `server/.env`; its `DATABASE_URL` already points at the local server.

@@ -11,14 +11,14 @@ This plan breaks the first milestone (sign in, create a project, list projects) 
 | 0. Environment | Node 24, git repo, README stub | none |
 | 1. Server foundation | Express server answers a health check | 0 |
 | 2. Client foundation | Styled React app shell with routing | 0 |
-| 3. Local database | Postgres running in Docker Compose | 2 |
+| 3. Local database | Postgres 18 running natively through Homebrew | 2 |
 | 4. Database and auth | Sign-up, sign-in and sign-out work over HTTP | 1, 3 |
 | 5. Projects API | Create and list projects, protected by session | 4 |
 | 6. Client auth | Register, log in and log out in the browser | 2, 4 |
 | 7. Client projects | Create and list projects in the browser | 5, 6 |
 | 8. Finish | Docs, lint, full end-to-end check | 7 |
 
-Phases 0 to 2 need no database. Docker is first required in Phase 3.
+Phases 0 to 2 need no database. Postgres is first required in Phase 3. The project uses no Docker.
 
 Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind, shadcn/ui, TanStack Query, React Router), its current setup docs are checked through Context7.
 
@@ -57,12 +57,12 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 
 ## Phase 3: Local database
 
-- [ ] **3.1** Add `docker-compose.yml` with a `postgres:18` service and a named volume.
-- [ ] **3.2** Add an init script that creates the `projectpro` and `projectpro_test` databases.
-- [ ] **3.3** Set `DATABASE_URL` in `server/.env` and `server/.env.example` to match the Compose service.
-- [ ] **3.4** Add the Docker commands to the README stub.
+- [x] **3.1** Install PostgreSQL 18 with `brew install postgresql@18` and start it with `brew services start postgresql@18`. The formula is keg-only, so add its `bin` folder to `PATH`.
+- [x] **3.2** Add `server/db/setup.sql`, run once with `psql -d postgres -f server/db/setup.sql`. It creates a `projectpro` role with `CREATEDB` (which `prisma migrate dev` needs for its shadow database) and the `projectpro` and `projectpro_test` databases.
+- [x] **3.3** Set `DATABASE_URL` in `server/.env` and `server/.env.example` to the local server (`postgresql://projectpro:projectpro@localhost:5432/projectpro`).
+- [x] **3.4** Add the install, start and setup commands to the README stub.
 
-**Check:** `docker compose up -d` starts Postgres and `psql` can connect to both databases.
+**Check:** `brew services list` shows `postgresql@18` started, and `psql` can connect to both databases as `projectpro`.
 
 ## Phase 4: Database and auth
 
@@ -128,10 +128,9 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 - **Better Auth handler order.** Mounting it after `express.json()` breaks sign-in silently; task 4.6 and the auth tests cover it.
 - **Cookies in development** rely on the Vite proxy keeping requests same-origin. If the proxy is bypassed, sign-in appears to work but the session is not sent.
 - **Server tests need Postgres running.** They use the separate `projectpro_test` database so they never touch development data.
-
 ## Verification of the whole milestone
 
-- `docker compose up -d`, migrate, then `npm test` in `server/` and `client/`: all pass.
+- With Postgres 18 running, migrate, then `npm test` in `server/` and `client/`: all pass.
 - With both dev servers running, complete the "Done when" list in `project-scope.md`.
 - In the database: signing in adds a `session` row, signing out removes it, and deleting the row by hand makes the next `/api/projects` request return 401.
 - The session cookie is httpOnly and holds an opaque token.

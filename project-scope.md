@@ -39,7 +39,7 @@ A project management web app for a small software team. The first milestone deli
 
 **Foundation**
 - Input validation on the server, with consistent JSON error responses for the project endpoints.
-- Database migrations, and a Docker Compose file for local Postgres.
+- Database migrations, and a setup script that creates the local Postgres role and databases.
 - Tests for the API and for the main client flows.
 - A README with setup and run instructions.
 
@@ -64,7 +64,6 @@ projectpro/
   project-scope.md          this document
   tech-stack.md             tools and versions
   implementation-plan.md    phased task list
-  docker-compose.yml        Postgres for local development
   README.md
   client/                   React + Vite + TypeScript
     src/
