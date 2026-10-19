@@ -55,4 +55,15 @@ describe('GET /api/me', () => {
 
     expect(res.status).toBe(401);
   });
+
+  it('returns 401 once the session has expired, and removes the expired session', async () => {
+    const cookie = await signUp();
+    await prisma.session.updateMany({ data: { expiresAt: new Date(Date.now() - 1000) } });
+
+    const res = await request(app).get('/api/me').set('Cookie', cookie);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ error: { message: 'Not signed in' } });
+    expect(await prisma.session.count()).toBe(0);
+  });
 });
