@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 
-// Placeholder until the project list is built in Phase 8.
+// Placeholder until the project list is built in Phase 9.
 export default function ProjectsPage() {
   return (
     <section className="space-y-4">

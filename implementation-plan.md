@@ -14,10 +14,11 @@ This plan breaks the first milestone (sign in, create a project, list projects) 
 | 3. Local database | Postgres 18 running natively through Homebrew | 2 |
 | 4. Prisma | Server talks to Postgres through one shared Prisma client; test database wired up | 1, 3 |
 | 5. Server auth | Sign-up, sign-in and sign-out work over HTTP | 4 |
-| 6. Projects API | Create and list projects, protected by session | 5 |
-| 7. Client auth | Register, log in and log out in the browser | 2, 5 |
-| 8. Client projects | Create and list projects in the browser | 6, 7 |
-| 9. Finish | Docs, lint, full end-to-end check | 8 |
+| 6. Current user | `requireAuth` guards routes; `GET /api/me` returns the signed-in user | 5 |
+| 7. Projects API | Create and list projects, protected by session | 6 |
+| 8. Client auth | Register, log in and log out in the browser | 2, 6 |
+| 9. Client projects | Create and list projects in the browser | 7, 8 |
+| 10. Finish | Docs, lint, full end-to-end check | 9 |
 
 Phases 0 to 2 need no database. Postgres is first required in Phase 3. The project uses no Docker.
 
@@ -77,57 +78,64 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 
 ## Phase 5: Server auth
 
-- [ ] **5.1** Install Better Auth and `@better-auth/prisma-adapter`; add `server/src/auth.ts` with email + password enabled, 7-day sessions, daily refresh and the cookie cache off.
-- [ ] **5.2** Generate the `User`, `Session`, `Account` and `Verification` models with the Better Auth CLI.
-- [ ] **5.3** Run the first migration against `projectpro`.
-- [ ] **5.4** Mount the Better Auth handler on `/api/auth/*splat` in `app.ts`, before `express.json()`.
-- [ ] **5.5** Add `server/src/middleware/requireAuth.ts`: look up the session with `auth.api.getSession`, return 401 without one, otherwise set `req.user`.
-- [ ] **5.6** Write auth tests: sign-up creates a user and a session row; sign-in sets a cookie; a wrong password is rejected; a duplicate email is rejected; sign-out deletes the session row.
+- [x] **5.1** Install Better Auth and `@better-auth/prisma-adapter`; add `server/src/auth.ts` with email + password enabled, 7-day sessions, daily refresh and the cookie cache off.
+- [x] **5.2** Generate the `User`, `Session`, `Account` and `Verification` models with the Better Auth CLI.
+- [x] **5.3** Run the first migration against `projectpro`.
+- [x] **5.4** Mount the Better Auth handler on `/api/auth/*splat` in `app.ts`, before `express.json()`.
+- [x] **5.5** Write auth tests: sign-up creates a user and a session row; sign-in sets a cookie; a wrong password is rejected; a duplicate email is rejected; sign-out deletes the session row.
 
 **Check:** `GET /api/auth/ok` responds; auth tests pass; a `curl` sign-up followed by `get-session` with the cookie returns the user.
 
-## Phase 6: Projects API
+## Phase 6: Current user
 
-- [ ] **6.1** Add the `Project` model (`id`, `name`, `description`, `createdById`, timestamps) with a relation to `User`; run its migration.
-- [ ] **6.2** Add `server/src/projects/schema.ts`: Zod schema for create (name 1 to 100 characters, trimmed; description optional, up to 2,000).
-- [ ] **6.3** Add `server/src/middleware/validate.ts`: turn Zod failures into a 400 with per-field messages.
-- [ ] **6.4** Add `server/src/projects/service.ts`: `listProjects` (newest first, including the creator's name) and `createProject`.
-- [ ] **6.5** Add `server/src/projects/routes.ts`: `GET` and `POST /api/projects` behind `requireAuth`; register it in `app.ts`.
-- [ ] **6.6** Write project tests: 401 without a session; create returns 201 and records the creator; empty and over-long names return 400; the list is newest first; a second user sees the first user's projects; a deleted session row gives 401 on the next request.
+- [x] **6.1** Add `server/src/middleware/requireAuth.ts`: look up the session with `auth.api.getSession`, return 401 without one, otherwise set `req.user`. Test it on a standalone app.
+- [x] **6.2** Add `server/src/routes/me.ts`: `GET /api/me` behind `requireAuth`, returning `{ user: { id, name, email } }` and nothing else from the user row; register it in `app.ts` after `express.json()`.
+- [x] **6.3** Write tests: 401 in the `{ error: { message } }` format without a session; 200 with the signed-up user and exactly those three fields; 401 after sign-out; 401 after the session row is deleted by hand.
+
+**Check:** all server tests pass; a `curl` sign-up followed by `GET /api/me` with the cookie returns the user, and the same request returns 401 after sign-out.
+
+## Phase 7: Projects API
+
+- [ ] **7.1** Add the `Project` model (`id`, `name`, `description`, `createdById`, timestamps) with a relation to `User`; run its migration.
+- [ ] **7.2** Add `server/src/projects/schema.ts`: Zod schema for create (name 1 to 100 characters, trimmed; description optional, up to 2,000).
+- [ ] **7.3** Add `server/src/middleware/validate.ts`: turn Zod failures into a 400 with per-field messages.
+- [ ] **7.4** Add `server/src/projects/service.ts`: `listProjects` (newest first, including the creator's name) and `createProject`.
+- [ ] **7.5** Add `server/src/projects/routes.ts`: `GET` and `POST /api/projects` behind `requireAuth`; register it in `app.ts`.
+- [ ] **7.6** Write project tests: 401 without a session; create returns 201 and records the creator; empty and over-long names return 400; the list is newest first; a second user sees the first user's projects; a deleted session row gives 401 on the next request.
 
 **Check:** all server tests pass; the endpoints work from `curl` with a session cookie.
 
-## Phase 7: Client auth
+## Phase 8: Client auth
 
-- [ ] **7.1** Add `src/auth/auth-client.ts` using `createAuthClient` from `better-auth/react`.
-- [ ] **7.2** Add `src/auth/schemas.ts`: Zod schemas for login (email, password) and register (name, email, password with a minimum length matching Better Auth's).
-- [ ] **7.3** Build `src/auth/RegisterPage.tsx` with React Hook Form, `zodResolver` and shadcn fields; show field errors and server errors (for example, email already in use).
-- [ ] **7.4** Build `src/auth/LoginPage.tsx` the same way; show a single "invalid email or password" message on failure.
-- [ ] **7.5** Add `src/auth/RequireAuth.tsx`: show a loading state while the session loads, redirect to `/login` when signed out; send signed-in users away from `/login` and `/register`.
-- [ ] **7.6** Add the user's name and a log-out button to the header; log-out clears cached queries and returns to `/login`.
-- [ ] **7.7** Write tests: validation messages appear; a successful login navigates to `/projects`; a signed-out visit to `/projects` redirects.
+- [ ] **8.1** Add `src/auth/auth-client.ts` using `createAuthClient` from `better-auth/react`.
+- [ ] **8.2** Add `src/auth/schemas.ts`: Zod schemas for login (email, password) and register (name, email, password with a minimum length matching Better Auth's).
+- [ ] **8.3** Build `src/auth/RegisterPage.tsx` with React Hook Form, `zodResolver` and shadcn fields; show field errors and server errors (for example, email already in use).
+- [ ] **8.4** Build `src/auth/LoginPage.tsx` the same way; show a single "invalid email or password" message on failure.
+- [ ] **8.5** Add `src/auth/RequireAuth.tsx`: show a loading state while the session loads, redirect to `/login` when signed out; send signed-in users away from `/login` and `/register`.
+- [ ] **8.6** Add the user's name and a log-out button to the header; log-out clears cached queries and returns to `/login`.
+- [ ] **8.7** Write tests: validation messages appear; a successful login navigates to `/projects`; a signed-out visit to `/projects` redirects.
 
 **Check:** in the browser, register, land on `/projects`, reload and stay signed in, log out, and log back in.
 
-## Phase 8: Client projects
+## Phase 9: Client projects
 
-- [ ] **8.1** Add `src/api/client.ts`: a fetch wrapper that sends cookies, parses the error format and throws a typed error.
-- [ ] **8.2** Add `src/projects/api.ts` and query hooks: `useProjects` and `useCreateProject` (invalidates the list on success).
-- [ ] **8.3** Add `src/projects/schemas.ts`: Zod schema for the new-project form, with the same limits as the server.
-- [ ] **8.4** Build `src/projects/ProjectList.tsx`: cards with name, description, creator and date; loading, error and empty states.
-- [ ] **8.5** Build `src/projects/NewProjectForm.tsx` in a dialog: validation, a disabled submit button while saving, server errors mapped to fields, close and reset on success.
-- [ ] **8.6** Assemble `src/projects/ProjectsPage.tsx` and wire it to the `/projects` route.
-- [ ] **8.7** Write tests: empty state; list renders; a created project appears without a reload; an empty name shows an error and sends no request.
+- [ ] **9.1** Add `src/api/client.ts`: a fetch wrapper that sends cookies, parses the error format and throws a typed error.
+- [ ] **9.2** Add `src/projects/api.ts` and query hooks: `useProjects` and `useCreateProject` (invalidates the list on success).
+- [ ] **9.3** Add `src/projects/schemas.ts`: Zod schema for the new-project form, with the same limits as the server.
+- [ ] **9.4** Build `src/projects/ProjectList.tsx`: cards with name, description, creator and date; loading, error and empty states.
+- [ ] **9.5** Build `src/projects/NewProjectForm.tsx` in a dialog: validation, a disabled submit button while saving, server errors mapped to fields, close and reset on success.
+- [ ] **9.6** Assemble `src/projects/ProjectsPage.tsx` and wire it to the `/projects` route.
+- [ ] **9.7** Write tests: empty state; list renders; a created project appears without a reload; an empty name shows an error and sends no request.
 
 **Check:** in the browser, create a project and see it at the top of the list without a reload.
 
-## Phase 9: Finish
+## Phase 10: Finish
 
-- [ ] **9.1** Complete `README.md`: prerequisites, environment variables, first-time setup, run, test.
-- [ ] **9.2** Add root convenience scripts to run and test both sides together.
-- [ ] **9.3** Run lint, type-check, build and tests on both sides and fix what they report.
-- [ ] **9.4** Walk through the "Done when" list in `project-scope.md` in the browser with two accounts.
-- [ ] **9.5** Tick the tasks in `implementation-plan.md` and note anything deferred.
+- [ ] **10.1** Complete `README.md`: prerequisites, environment variables, first-time setup, run, test.
+- [ ] **10.2** Add root convenience scripts to run and test both sides together.
+- [ ] **10.3** Run lint, type-check, build and tests on both sides and fix what they report.
+- [ ] **10.4** Walk through the "Done when" list in `project-scope.md` in the browser with two accounts.
+- [ ] **10.5** Tick the tasks in `implementation-plan.md` and note anything deferred.
 
 **Check:** every item in the scope document's "Done when" list passes.
 
