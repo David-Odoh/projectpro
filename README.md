@@ -108,6 +108,34 @@ npm run lint
 npm run build
 ```
 
+## Database (Prisma)
+
+Run in `server/`. The schema is `prisma/schema.prisma`, migrations live in `prisma/migrations/`, and the CLI reads `DATABASE_URL` from `server/.env` through `prisma.config.ts`.
+
+| Command | What it does |
+|---|---|
+| `npm run db:generate` | Regenerates the Prisma client in `src/generated/prisma`. Same as `npx prisma generate`. |
+| `npm run db:migrate -- --name <name>` | Turns schema changes into a new migration and applies it to the development database. Same as `npx prisma migrate dev --name <name>`. |
+| `npx prisma migrate dev --create-only --name <name>` | Writes the migration without applying it, so you can review or edit the SQL first. |
+| `npx prisma migrate deploy` | Applies any pending migrations without creating new ones. Use it after pulling, on a fresh clone, or in production. |
+| `npx prisma migrate status` | Shows which migrations have been applied and which are still pending. |
+| `npx prisma migrate reset` | Drops the development database, re-applies every migration and deletes all data. Development only. |
+| `npx prisma format` | Formats `schema.prisma`. |
+| `npx prisma validate` | Checks `schema.prisma` for errors without touching the database. |
+| `npx prisma studio` | Opens a browser UI for viewing and editing rows. |
+
+To change the schema:
+
+```sh
+# 1. Edit prisma/schema.prisma, then:
+npx prisma format
+npm run db:migrate -- --name <what_changed>   # e.g. add_project
+npm run db:generate                           # Prisma 7's migrate dev no longer does this
+npm run typecheck
+```
+
+Commit the new folder in `prisma/migrations/` along with the schema change. The tests apply migrations to `projectpro_test` themselves, so you don't need to migrate that database by hand.
+
 ## Troubleshooting
 
 | Symptom | Fix |
