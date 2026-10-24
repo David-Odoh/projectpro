@@ -96,9 +96,9 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 
 ## Phase 7: Projects API
 
-- [ ] **7.1** Add the `Project` model (`id`, `name`, `description`, `createdById`, timestamps) with a relation to `User`; run its migration.
-- [ ] **7.2** Add `server/src/projects/schema.ts`: Zod schema for create (name 1 to 100 characters, trimmed; description optional, up to 2,000).
-- [ ] **7.3** Add `server/src/middleware/validate.ts`: turn Zod failures into a 400 with per-field messages.
+- [x] **7.1** Add the `Project` model (`id`, `name`, `description`, `createdById`, timestamps) with a relation to `User`; run its migration.
+- [x] **7.2** Add `server/src/projects/schema.ts`: Zod schema for create (name 1 to 100 characters, trimmed; description optional, up to 2,000).
+- [x] **7.3** Add `server/src/middleware/validate.ts`: turn Zod failures into a 400 with per-field messages.
 - [ ] **7.4** Add `server/src/projects/service.ts`: `listProjects` (newest first, including the creator's name) and `createProject`.
 - [ ] **7.5** Add `server/src/projects/routes.ts`: `GET` and `POST /api/projects` behind `requireAuth`; register it in `app.ts`.
 - [ ] **7.6** Write project tests: 401 without a session; create returns 201 and records the creator; empty and over-long names return 400; the list is newest first; a second user sees the first user's projects; a deleted session row gives 401 on the next request.
