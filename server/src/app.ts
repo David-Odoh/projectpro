@@ -3,6 +3,7 @@ import express from 'express';
 import { auth } from './auth.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { meRouter } from './routes/me.js';
+import { projectsRouter } from './projects/routes.js';
 
 export const app = express();
 
@@ -18,6 +19,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/me', meRouter);
+app.use('/api/projects', projectsRouter);
 
 app.use(notFound);
 app.use(errorHandler);
