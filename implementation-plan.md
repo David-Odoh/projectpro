@@ -101,7 +101,7 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 - [x] **7.3** Add `server/src/middleware/validate.ts`: turn Zod failures into a 400 with per-field messages.
 - [x] **7.4** Add `server/src/projects/service.ts`: `listProjects` (newest first, including the creator's name) and `createProject`.
 - [x] **7.5** Add `server/src/projects/routes.ts`: `GET` and `POST /api/projects` behind `requireAuth`; register it in `app.ts`.
-- [ ] **7.6** Write project tests: 401 without a session; create returns 201 and records the creator; empty and over-long names return 400; the list is newest first; a second user sees the first user's projects; a deleted session row gives 401 on the next request.
+- [x] **7.6** Write project tests: 401 without a session; create returns 201 and records the creator; empty and over-long names return 400; the list is newest first; a second user sees the first user's projects; a deleted session row gives 401 on the next request.
 
 **Check:** all server tests pass; the endpoints work from `curl` with a session cookie.
 
