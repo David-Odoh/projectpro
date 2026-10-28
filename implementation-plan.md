@@ -108,7 +108,7 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 ## Phase 8: Client auth
 
 - [x] **8.1** Add `src/auth/auth-client.ts` using `createAuthClient` from `better-auth/react`.
-- [ ] **8.2** Add `src/auth/schemas.ts`: Zod schemas for login (email, password) and register (name, email, password with a minimum length matching Better Auth's).
+- [x] **8.2** Add `src/auth/schemas.ts`: Zod schemas for login (email, password) and register (name, email, password with a minimum length matching Better Auth's).
 - [ ] **8.3** Build `src/auth/RegisterPage.tsx` with React Hook Form, `zodResolver` and shadcn fields; show field errors and server errors (for example, email already in use).
 - [ ] **8.4** Build `src/auth/LoginPage.tsx` the same way; show a single "invalid email or password" message on failure.
 - [ ] **8.5** Add `src/auth/RequireAuth.tsx`: show a loading state while the session loads, redirect to `/login` when signed out; send signed-in users away from `/login` and `/register`.
