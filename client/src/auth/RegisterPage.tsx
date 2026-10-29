@@ -1,29 +1,35 @@
-import { useState, type SubmitEvent } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { signUp } from './auth-client';
+import { registerSchema, type RegisterInput } from './schemas';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { name: '', email: '', password: '' },
+  });
 
-  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-
-    setSubmitting(true);
-    const { error } = await signUp.email({
-      name: form.get('name') as string,
-      email: form.get('email') as string,
-      password: form.get('password') as string,
-    });
-    setSubmitting(false);
-
-    // Server error messages are surfaced in a later task.
-    if (!error) void navigate('/projects');
+  // handleSubmit only calls this once the schema passes, so invalid input never reaches the API.
+  async function onSubmit(values: RegisterInput) {
+    const { error } = await signUp.email(values);
+    if (error) {
+      setError('root.server', {
+        message: error.message ?? 'Registration failed. Please try again.',
+      });
+      return;
+    }
+    void navigate('/projects');
   }
 
   return (
@@ -33,22 +39,47 @@ export default function RegisterPage() {
         <CardDescription>Register to start tracking projects.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
-        <form onSubmit={(event) => void handleSubmit(event)}>
+        {/* noValidate: the browser's own email check would otherwise pre-empt the Zod messages. */}
+        <form noValidate onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
           <FieldGroup>
-            <Field>
+            <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="name">Name</FieldLabel>
-              <Input id="name" name="name" autoComplete="name" />
+              <Input
+                id="name"
+                autoComplete="name"
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? 'name-error' : undefined}
+                {...register('name')}
+              />
+              <FieldError id="name-error" errors={[errors.name]} />
             </Field>
-            <Field>
+            <Field data-invalid={!!errors.email}>
               <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input id="email" name="email" type="email" autoComplete="email" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                {...register('email')}
+              />
+              <FieldError id="email-error" errors={[errors.email]} />
             </Field>
-            <Field>
+            <Field data-invalid={!!errors.password}>
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input id="password" name="password" type="password" autoComplete="new-password" />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                {...register('password')}
+              />
+              <FieldError id="password-error" errors={[errors.password]} />
             </Field>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Creating account…' : 'Create account'}
+            <FieldError errors={[errors.root?.server]} />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account…' : 'Create account'}
             </Button>
           </FieldGroup>
         </form>
