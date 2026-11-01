@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { signIn } from './auth-client';
+import { signIn, useSession } from './auth-client';
 import { loginSchema, type LoginInput } from './schemas';
 
 // Rejected credentials share one message so the form never reveals whether an email is registered.
@@ -17,6 +17,7 @@ function serverErrorMessage(status: number) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { refetch } = useSession();
   const {
     register,
     handleSubmit,
@@ -42,6 +43,9 @@ export default function LoginPage() {
       });
       return;
     }
+    // Better Auth only refreshes the session shortly after sign-in resolves. Starting the fetch now
+    // keeps isPending true, so RequireAuth shows its loader rather than redirecting back here.
+    await refetch();
     void navigate('/projects');
   }
 

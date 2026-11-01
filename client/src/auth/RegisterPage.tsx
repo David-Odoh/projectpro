@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { signUp } from './auth-client';
+import { signUp, useSession } from './auth-client';
 import { registerSchema, type RegisterInput } from './schemas';
 
 type ServerError = { code?: string; message?: string; status: number };
@@ -43,6 +43,7 @@ function applyServerError(error: ServerError, setError: UseFormSetError<Register
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { refetch } = useSession();
   const {
     register,
     handleSubmit,
@@ -68,6 +69,9 @@ export default function RegisterPage() {
       });
       return;
     }
+    // Better Auth only refreshes the session shortly after sign-up resolves. Starting the fetch now
+    // keeps isPending true, so RequireAuth shows its loader rather than redirecting to /login.
+    await refetch();
     void navigate('/projects');
   }
 

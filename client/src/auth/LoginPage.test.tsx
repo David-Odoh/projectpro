@@ -5,7 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LoginPage from './LoginPage';
 import { signIn } from './auth-client';
 
-vi.mock('./auth-client', () => ({ signIn: { email: vi.fn() } }));
+const refetch = vi.hoisted(() => vi.fn());
+
+vi.mock('./auth-client', () => ({
+  signIn: { email: vi.fn() },
+  useSession: () => ({ refetch }),
+}));
 
 const signInEmail = vi.mocked(signIn.email);
 
@@ -35,6 +40,7 @@ describe('LoginPage', () => {
   // Braces matter: Vitest would run a returned function, here the mock itself, as test cleanup.
   beforeEach(() => {
     signInEmail.mockReset();
+    refetch.mockReset();
   });
 
   it('shows a message under each invalid field and does not call the API', async () => {
@@ -61,6 +67,22 @@ describe('LoginPage', () => {
       email: 'ada@example.com',
       password: 'correct horse',
     });
+  });
+
+  it('starts the session fetch before navigating to /projects', async () => {
+    signInEmail.mockResolvedValue({ data: {}, error: null });
+    let finishRefetch = () => {};
+    refetch.mockReturnValue(new Promise<void>((resolve) => (finishRefetch = resolve)));
+    const user = userEvent.setup();
+    renderPage();
+
+    await submitValidForm(user);
+
+    expect(refetch).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('heading', { name: 'Projects' })).not.toBeInTheDocument();
+
+    finishRefetch();
+    expect(await screen.findByRole('heading', { name: 'Projects' })).toBeInTheDocument();
   });
 
   it('shows a single message for rejected credentials and keeps the values', async () => {
