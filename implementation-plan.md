@@ -113,7 +113,7 @@ Before each phase that sets up a library (Prisma 7, Better Auth, Vite, Tailwind,
 - [x] **8.4** Build `src/auth/LoginPage.tsx` the same way; show a single "invalid email or password" message on failure.
 - [x] **8.5** Add `src/auth/RequireAuth.tsx`: show a loading state while the session loads, redirect to `/login` when signed out; send signed-in users away from `/login` and `/register`.
 - [x] **8.6** Add the user's name and a log-out button to the header; log-out clears cached queries and returns to `/login`.
-- [ ] **8.7** Write tests: validation messages appear; a successful login navigates to `/projects`; a signed-out visit to `/projects` redirects.
+- [x] **8.7** Write tests: validation messages appear; a successful login navigates to `/projects`; a signed-out visit to `/projects` redirects.
 
 **Check:** in the browser, register, land on `/projects`, reload and stay signed in, log out, and log back in.
 

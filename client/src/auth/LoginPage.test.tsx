@@ -55,6 +55,67 @@ describe('LoginPage', () => {
     expect(signInEmail).not.toHaveBeenCalled();
   });
 
+  it('shows a message for a malformed email and does not call the API', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Email'), 'not-an-email');
+    await user.type(screen.getByLabelText('Password'), 'correct horse');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByText('Enter a valid email address')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Password')).not.toHaveAttribute('aria-invalid', 'true');
+    expect(signInEmail).not.toHaveBeenCalled();
+  });
+
+  it('shows a message for an empty password and does not call the API', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByText('Password is required')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Email')).not.toHaveAttribute('aria-invalid', 'true');
+    expect(signInEmail).not.toHaveBeenCalled();
+  });
+
+  it('sends a short password to the API without revealing the length rules', async () => {
+    signInEmail.mockResolvedValue({ data: {}, error: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    await user.type(screen.getByLabelText('Password'), 'short');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+    expect(signInEmail).toHaveBeenCalledWith({ email: 'ada@example.com', password: 'short' });
+  });
+
+  it('clears the message and submits once the invalid field is corrected', async () => {
+    signInEmail.mockResolvedValue({ data: {}, error: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Email'), 'not-an-email');
+    await user.type(screen.getByLabelText('Password'), 'correct horse');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+    await screen.findByText('Enter a valid email address');
+    expect(signInEmail).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText('Email'));
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    expect(screen.queryByText('Enter a valid email address')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+    expect(signInEmail).toHaveBeenCalledOnce();
+  });
+
   it('submits trimmed values and navigates to /projects', async () => {
     signInEmail.mockResolvedValue({ data: {}, error: null });
     const user = userEvent.setup();

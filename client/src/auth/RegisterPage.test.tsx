@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RegisterPage from './RegisterPage';
 import { signUp } from './auth-client';
+import { PASSWORD_MAX, PASSWORD_MIN } from './schemas';
 
 const refetch = vi.hoisted(() => vi.fn());
 
@@ -58,6 +59,69 @@ describe('RegisterPage', () => {
     expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
     expect(screen.getByLabelText('Name')).toHaveAttribute('aria-invalid', 'true');
     expect(signUpEmail).not.toHaveBeenCalled();
+  });
+
+  // One broken rule per case: with several, any one working rule would block the request alone.
+  it.each([
+    ['a blank name', 'Name', '   ', 'Name is required'],
+    ['an empty email', 'Email', '', 'Email is required'],
+    ['a malformed email', 'Email', 'not-an-email', 'Enter a valid email address'],
+    [
+      'a password below the minimum',
+      'Password',
+      'x'.repeat(PASSWORD_MIN - 1),
+      `Password must be at least ${PASSWORD_MIN} characters`,
+    ],
+    [
+      'a password above the maximum',
+      'Password',
+      'x'.repeat(PASSWORD_MAX + 1),
+      `Password must be at most ${PASSWORD_MAX} characters`,
+    ],
+  ])('does not call the API for %s', async (_case, invalidField, invalidValue, message) => {
+    const user = userEvent.setup();
+    renderPage();
+    const fields = {
+      Name: 'Ada',
+      Email: 'ada@example.com',
+      Password: 'correct horse',
+      [invalidField]: invalidValue,
+    };
+
+    for (const [label, value] of Object.entries(fields)) {
+      if (value) await user.type(screen.getByLabelText(label), value);
+    }
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    for (const label of Object.keys(fields)) {
+      const expectation = expect(screen.getByLabelText(label));
+      if (label === invalidField) expectation.toHaveAttribute('aria-invalid', 'true');
+      else expectation.not.toHaveAttribute('aria-invalid', 'true');
+    }
+    expect(signUpEmail).not.toHaveBeenCalled();
+  });
+
+  it('clears the message and submits once the invalid field is corrected', async () => {
+    signUpEmail.mockResolvedValue({ data: {}, error: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Name'), 'Ada');
+    await user.type(screen.getByLabelText('Email'), 'not-an-email');
+    await user.type(screen.getByLabelText('Password'), 'correct horse');
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+    await screen.findByText('Enter a valid email address');
+    expect(signUpEmail).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText('Email'));
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    expect(screen.queryByText('Enter a valid email address')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+    expect(signUpEmail).toHaveBeenCalledOnce();
   });
 
   it('submits trimmed values and navigates to /projects', async () => {
