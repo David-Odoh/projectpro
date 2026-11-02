@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
@@ -8,6 +8,7 @@ import { useSession } from '@/auth/auth-client';
 
 vi.mock('@/auth/auth-client', () => ({
   signIn: { email: vi.fn() },
+  signOut: vi.fn(),
   signUp: { email: vi.fn() },
   useSession: vi.fn(),
 }));
@@ -41,6 +42,22 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: 'ProjectPro' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+  });
+
+  it("shows the user's name and log-out button in the header when signed in", () => {
+    setSignedIn(true);
+    renderApp('/projects');
+
+    const header = within(screen.getByRole('banner'));
+    expect(header.getByText('Ada')).toBeInTheDocument();
+    expect(header.getByRole('button', { name: 'Log out' })).toBeInTheDocument();
+  });
+
+  it('hides the log-out button when signed out', () => {
+    setSignedIn(false);
+    renderApp('/login');
+
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
   });
 
   it('navigates between the login and register routes when signed out', async () => {
